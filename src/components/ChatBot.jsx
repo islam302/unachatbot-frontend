@@ -335,7 +335,7 @@ const ChatPage = () => {
           >
             UNA.OIC.ORG
           </a>{" "}
-          جميع الحقوق محفوظة لصالح
+          جميع الحقوق محفوظة
         </p>
         <div className="social-icons">
           <a
