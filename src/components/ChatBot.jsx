@@ -18,7 +18,7 @@ const ChatPage = () => {
   const [useUnaApi, setUseUnaApi] = useState(false);
   const messagesEndRef = useRef(null);
   const [currentDate, setCurrentDate] = useState("");
-  const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا..."); // نص placeholder
+  const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا...");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,51 +55,146 @@ const ChatPage = () => {
     setInput("");
 
     const apiUrl = useUnaApi
-      ? "https://unachatbot-po0f.onrender.com/ask_una/"
-      : "https://unachatbot-po0f.onrender.com/ask_questions/";
+      ? "http://127.0.0.1:8000/ask_una/"
+      : "http://127.0.0.1:8000/ask_questions/";
 
     try {
+      console.log("Sending request to:", apiUrl);
+      console.log("Payload:", { question: input });
+
       const response = await axios.post(apiUrl, { question: input });
+      console.log("Response Data:", response.data);
+
       const updatedMessages = [...newMessages];
 
-      if (response.data.answer_type === "multiple") {
-        const overview = response.data.overview_description || "";
-        const collapsibleItems = response.data.answer
-          .split("\n")
-          .filter(line => line.startsWith("-"))
-          .map(line => {
-            const [titlePart, ...descParts] = line.split(":");
-            return {
-              title: titlePart.replace("-", "").trim(),
-              description: addLinkTargetAttribute(descParts.join(":").trim()), // معالجة الروابط
-              isExpanded: false
-            };
-          });
+      if (useUnaApi) {
+        if (response.data.answer && response.data.answer.length > 0) {
+          response.data.answer.forEach((answer) => {
+            if (answer.search_url) {
+              updatedMessages.push({
+                text: `
+                  <div style="text-align: center;">
+                    <a href="${answer.search_url}" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       style="
+                          background-color: #323436; 
+                          color: white; 
+                          padding: 8px 16px; 
+                          text-decoration: none; 
+                          border-radius: 20px; 
+                          font-weight: bold; 
+                          display: inline-block; 
+                          margin-top: 10px; 
+                          text-align: center;">
+                       لللإطلاع على المزيد من الأخبار إضغط هنا
+                    </a>
+                  </div>
+                `,
+                sender: "bot",
+                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+                isHtml: true,
+              });
+            } else {
+              const imageHtml = answer.image_url
+                ? `<img src="${answer.image_url}" alt="Image" style="width: 100%; height: auto; margin-top: 10px; border-radius: 10px;">`
+                : "";
 
-        updatedMessages.push({
-          sender: "bot",
-          overview: addLinkTargetAttribute(overview), // معالجة الروابط هنا أيضًا
-          collapsibleItems: collapsibleItems,
-          type: "multipleAnswers"
-        });
-      } else if (response.data.answer) {
-        updatedMessages.push({
-          text: addLinkTargetAttribute(response.data.answer),
-          sender: "bot",
-          icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-          isHtml: true,
-        });
+              updatedMessages.push({
+                text: `
+                  <div style="border: 1px solid #ddd; border-radius: 10px; overflow: hidden; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    ${imageHtml}
+                    <p style="color: #ffffff; font-size: 12px; margin-top: 10px; text-align: center;">${answer.date}</p>
+                    <h3 style="font-size: 18px; color: #ffffff; margin-top: 10px;">${answer.title}</h3>
+                    <p style="color: #ffffff; font-size: 14px; line-height: 1.6; margin-top: 10px;">${answer.content}</p>
+                    <a href="${answer.link}" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       style="
+                          background-color: #323436; 
+                          color: white; 
+                          padding: 8px 16px; 
+                          text-decoration: none; 
+                          border-radius: 20px; 
+                          font-weight: bold; 
+                          display: inline-block; 
+                          margin-top: 10px; 
+                          text-align: center;">
+                      أكمل القراءة
+                    </a>
+                  </div>
+                `,
+                sender: "bot",
+                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+                isHtml: true,
+              });
+            }
+          });
+        } else {
+          updatedMessages.push({
+            text: "آسف، لم أتمكن من العثور على إجابة.",
+            sender: "bot",
+            icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+          });
+        }
       } else {
-        updatedMessages.push({
-          text: "آسف، لم أتمكن من العثور على الإجابة.",
-          sender: "bot",
-          icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-        });
+        if (response.data.answer_type === "multiple") {
+          const overview = response.data.overview_description || "";
+          const collapsibleItems = response.data.answer
+            .split("\n")
+            .filter(line => line.startsWith("-"))
+            .map(line => {
+              const [titlePart, ...descParts] = line.split(":");
+              return {
+                title: titlePart.replace("-", "").trim(),
+                description: addLinkTargetAttribute(descParts.join(":").trim()),
+                isExpanded: false
+              };
+            });
+
+          updatedMessages.push({
+            sender: "bot",
+            overview: addLinkTargetAttribute(overview),
+            collapsibleItems: collapsibleItems,
+            type: "multipleAnswers"
+          });
+        } else if (response.data.answer) {
+          // Handle "none" response
+          if (response.data.answer.trim().toLowerCase() === "none") {
+            updatedMessages.push({
+              text: "لا توجد إجابة على هذا السؤال في الوقت الحالي. يرجى طرح سؤال آخر.",
+              sender: "bot",
+              icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+            });
+
+            if (response.data.answer.trim().toLowerCase() === "none") {
+              updatedMessages.push({
+                text: "لا توجد إجابة على هذا السؤال في الوقت الحالي. يرجى طرح سؤال آخر.",
+                sender: "bot",
+                icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+              });
+            }
+
+          } else {
+            updatedMessages.push({
+              text: addLinkTargetAttribute(response.data.answer),
+              sender: "bot",
+              icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+              isHtml: true,
+            });
+          }
+        } else {
+          updatedMessages.push({
+            text: "آسف، لم أتمكن من العثور على الإجابة.",
+            sender: "bot",
+            icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+          });
+        }
       }
 
       setMessages(updatedMessages);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message:", error.response || error.message);
       setMessages((prevMessages) => [
         ...prevMessages,
         {
@@ -110,7 +205,6 @@ const ChatPage = () => {
       ]);
     }
   };
-
   const toggleItem = (messageIndex, itemIndex) => {
     setMessages((prevMessages) =>
       prevMessages.map((msg, msgIdx) => {
@@ -127,7 +221,30 @@ const ChatPage = () => {
     );
   };
 
+  const renderContent = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
 
+    // فصل الفقرات الأولى عن الباقي
+    const firstParagraph = doc.body.firstElementChild?.outerHTML || '';
+    const additionalContent = Array.from(doc.body.children)
+      .slice(1)
+      .map(el => el.outerHTML)
+      .join('');
+
+    return {
+      main: firstParagraph,
+      additional: additionalContent
+    };
+  };
+
+  const toggleAdditionalContent = (index) => {
+    setMessages(prevMessages =>
+      prevMessages.map((msg, i) =>
+        i === index ? {...msg, isExpanded: !msg.isExpanded} : msg
+      )
+    );
+  };
 
   const handleSimilarQuestion = async (id) => {
     const similarQuestion = messages.find((msg) => msg.id === id);
@@ -223,52 +340,79 @@ const ChatPage = () => {
       {/* Chat messages container */}
       <div className="chat-container">
         <div className="chat-messages">
-          {messages.map((msg, index) => (
+          {messages.map((msg, index) => {
+            // فصل المحتوى الرئيسي عن الإضافي
+            const { main, additional } = renderContent(msg.text);
+
+            return (
               <div key={index} className={`chat-message ${msg.sender}`}>
                 <div className="message-text">
                   {msg.isHtml ? (
-                      <div dangerouslySetInnerHTML={{__html: msg.text}}/>
-                  ) : msg.type === "multipleAnswers" ? (
-                      <>
-                        {/* عرض الوصف الشامل أولًا */}
-                        {msg.overview && (
-                            <div
-                                className="overview-description"
-                                dangerouslySetInnerHTML={{__html: msg.overview}}
-                            />
-                        )}
+                    <>
+                      {/* عرض المحتوى الرئيسي */}
+                      <div dangerouslySetInnerHTML={{ __html: main || '<p>عذراً لا يمكنني توفير إجابة لهذا السؤال. أنا لازلت تحت التدريب للإجابة على كل الأسئلة في سياق مجال عملنا. إذا كان سؤالك في هذا المجال، أعدك بتوفير الإجابة في المرة القادمة.</p>' }} />
 
-                        {/* عرض الحقول القابلة للطي */}
-                        {msg.collapsibleItems.map((item, itemIndex) => (
-                            <div key={itemIndex} className="collapsible-item">
-                              <button
-                                  onClick={() => toggleItem(index, itemIndex)}
-                                  className="collapsible-button"
-                              >
-                                {item.title}
-                              </button>
-                              {item.isExpanded && (
-                                  <div
-                                      className="collapsible-content"
-                                      dangerouslySetInnerHTML={{__html: item.description}}
-                                  />
-                              )}
-                            </div>
-                        ))}
-                      </>
+                      {/* عرض الإجابات الإضافية إذا وجدت */}
+                      {additional && (
+                        <div className="additional-content-container">
+                          <button
+                            onClick={() => toggleAdditionalContent(index)}
+                            className="show-additional-btn"
+                          >
+                            {msg.isExpanded ? 'إخفاء التفاصيل' : 'عرض التفاصيل الإضافية'}
+                            <span className={`arrow ${msg.isExpanded ? 'up' : 'down'}`} />
+                          </button>
+
+                          {msg.isExpanded && (
+                            <div
+                              className="additional-content"
+                              dangerouslySetInnerHTML={{ __html: additional }}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : msg.type === "multipleAnswers" ? (
+                    <>
+                      {/* عرض الوصف الشامل أولًا */}
+                      {msg.overview && (
+                        <div
+                          className="overview-description"
+                          dangerouslySetInnerHTML={{ __html: msg.overview }}
+                        />
+                      )}
+
+                      {/* عرض الحقول القابلة للطي */}
+                      {msg.collapsibleItems.map((item, itemIndex) => (
+                        <div key={itemIndex} className="collapsible-item">
+                          <button
+                            onClick={() => toggleItem(index, itemIndex)}
+                            className="collapsible-button"
+                          >
+                            {item.title}
+                          </button>
+                          {item.isExpanded && (
+                            <div
+                              className="collapsible-content"
+                              dangerouslySetInnerHTML={{ __html: item.description }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </>
                   ) : (
-                      <TypeAnimation
-                          sequence={[msg.text, () => {
-                          }]}
-                          speed={70}
-                          repeat={0}
-                          wrapper="div"
-                      />
+                    <TypeAnimation
+                      sequence={[msg.text, () => {}]}
+                      speed={70}
+                      repeat={0}
+                      wrapper="div"
+                    />
                   )}
                 </div>
               </div>
-          ))}
-          <div ref={messagesEndRef}/>
+            );
+          })}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
