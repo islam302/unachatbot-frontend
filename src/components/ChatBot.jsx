@@ -55,8 +55,8 @@ const ChatPage = () => {
     setInput("");
 
     const apiUrl = useUnaApi
-      ? "https://unachatbot-po0f.onrender.com/ask_una/"
-      : "https://unachatbot-po0f.onrender.com/ask_questions/";
+      ? "http://127.0.0.1:8000/ask_una/"
+      : "http://127.0.0.1:8000/ask_questions/";
 
     try {
       console.log("Sending request to:", apiUrl);
@@ -205,6 +205,7 @@ const ChatPage = () => {
       ]);
     }
   };
+
   const toggleItem = (messageIndex, itemIndex) => {
     setMessages((prevMessages) =>
       prevMessages.map((msg, msgIdx) => {
@@ -342,7 +343,7 @@ const ChatPage = () => {
         <div className="chat-messages">
           {messages.map((msg, index) => {
             // فصل المحتوى الرئيسي عن الإضافي
-            const { main, additional } = renderContent(msg.text);
+            const { main } = renderContent(msg.text);
 
             return (
               <div key={index} className={`chat-message ${msg.sender}`}>
@@ -352,25 +353,6 @@ const ChatPage = () => {
                       {/* عرض المحتوى الرئيسي */}
                       <div dangerouslySetInnerHTML={{ __html: main || '<p>عذراً لا يمكنني توفير إجابة لهذا السؤال. أنا لازلت تحت التدريب للإجابة على كل الأسئلة في سياق مجال عملنا. إذا كان سؤالك في هذا المجال، أعدك بتوفير الإجابة في المرة القادمة.</p>' }} />
 
-                      {/* عرض الإجابات الإضافية إذا وجدت */}
-                      {additional && (
-                        <div className="additional-content-container">
-                          <button
-                            onClick={() => toggleAdditionalContent(index)}
-                            className="show-additional-btn"
-                          >
-                            {msg.isExpanded ? 'إخفاء التفاصيل' : 'عرض التفاصيل الإضافية'}
-                            <span className={`arrow ${msg.isExpanded ? 'up' : 'down'}`} />
-                          </button>
-
-                          {msg.isExpanded && (
-                            <div
-                              className="additional-content"
-                              dangerouslySetInnerHTML={{ __html: additional }}
-                            />
-                          )}
-                        </div>
-                      )}
                     </>
                   ) : msg.type === "multipleAnswers" ? (
                     <>
