@@ -351,8 +351,7 @@ const ChatPage = () => {
                   {msg.isHtml ? (
                     <>
                       {/* عرض المحتوى الرئيسي */}
-                      <div dangerouslySetInnerHTML={{ __html: main || '<p>عذراً لا يمكنني توفير إجابة لهذا السؤال. أنا لازلت تحت التدريب للإجابة على كل الأسئلة في سياق مجال عملنا. إذا كان سؤالك في هذا المجال، أعدك بتوفير الإجابة في المرة القادمة.</p>' }} />
-
+                    <div dangerouslySetInnerHTML={{ __html: msg.text }} />
                     </>
                   ) : msg.type === "multipleAnswers" ? (
                     <>
