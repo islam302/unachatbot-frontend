@@ -12,6 +12,14 @@ import {
 import { faGlobeAmericas } from "@fortawesome/free-solid-svg-icons";
 import "./ChatBot.css";
 
+const LoadingDots = () => (
+  <div className="loading-dots" style={{ textAlign: 'center', margin: '10px 0' }}>
+    <span className="dot">.</span>
+    <span className="dot">.</span>
+    <span className="dot">.</span>
+  </div>
+);
+
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -19,6 +27,8 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const [currentDate, setCurrentDate] = useState("");
   const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا...");
+  const [isLoading, setIsLoading] = useState(false);
+  const [animatedIndexes, setAnimatedIndexes] = useState([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,10 +50,17 @@ const ChatPage = () => {
   }, []);
 
   const addLinkTargetAttribute = (html) => {
-    return html.replace(
-      /<a /g,
-      '<a target="_blank" rel="noopener noreferrer" '
+    // Convert plain URLs to anchor tags
+    const urlRegex = /(https?:\/\/[\w\-\.\/?#&=;%:+,~@!$'()*\[\]]+)/g;
+    let processed = html.replace(urlRegex, (url) => {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">${url}</a>`;
+    });
+    // Ensure all <a> tags have the correct attributes and style
+    processed = processed.replace(
+      /<a (?![^>]*target=)/g,
+      '<a target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;" '
     );
+    return processed;
   };
 
   const sendMessage = async (e) => {
@@ -53,10 +70,11 @@ const ChatPage = () => {
     const newMessages = [...messages, { text: input, sender: "user" }];
     setMessages(newMessages);
     setInput("");
+    setIsLoading(true);
 
     const apiUrl = useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
-      : "https://unachatbot-po0f.onrender.com/ask_questions/";
+      : "https://unachatbot-po0f.onrender.com/chat/";
 
     try {
       console.log("Sending request to:", apiUrl);
@@ -74,19 +92,10 @@ const ChatPage = () => {
               updatedMessages.push({
                 text: `
                   <div style="text-align: center;">
-                    <a href="${answer.search_url}" 
-                       target="_blank" 
-                       rel="noopener noreferrer" 
-                       style="
-                          background-color: #323436; 
-                          color: white; 
-                          padding: 8px 16px; 
-                          text-decoration: none; 
-                          border-radius: 20px; 
-                          font-weight: bold; 
-                          display: inline-block; 
-                          margin-top: 10px; 
-                          text-align: center;">
+                    <a href="${answer.search_url}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
                        لللإطلاع على المزيد من الأخبار إضغط هنا
                     </a>
                   </div>
@@ -107,19 +116,10 @@ const ChatPage = () => {
                     <p style="color: #ffffff; font-size: 12px; margin-top: 10px; text-align: center;">${answer.date}</p>
                     <h3 style="font-size: 18px; color: #ffffff; margin-top: 10px;">${answer.title}</h3>
                     <p style="color: #ffffff; font-size: 14px; line-height: 1.6; margin-top: 10px;">${answer.content}</p>
-                    <a href="${answer.link}" 
-                       target="_blank" 
-                       rel="noopener noreferrer" 
-                       style="
-                          background-color: #323436; 
-                          color: white; 
-                          padding: 8px 16px; 
-                          text-decoration: none; 
-                          border-radius: 20px; 
-                          font-weight: bold; 
-                          display: inline-block; 
-                          margin-top: 10px; 
-                          text-align: center;">
+                    <a href="${answer.link}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
                       أكمل القراءة
                     </a>
                   </div>
@@ -176,12 +176,24 @@ const ChatPage = () => {
             }
 
           } else {
-            updatedMessages.push({
-              text: addLinkTargetAttribute(response.data.answer),
-              sender: "bot",
-              icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-              isHtml: true,
-            });
+            // Check if the original answer contains real HTML (not just links)
+            const original = response.data.answer;
+            const isRealHtml = /<(div|img|h\d|p|ul|ol|li|table|tr|td|th|br|span|strong|em|b|i)[^>]*>/i.test(original);
+            if (isRealHtml) {
+              updatedMessages.push({
+                text: addLinkTargetAttribute(original),
+                sender: "bot",
+                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+                isHtml: true,
+              });
+            } else {
+              updatedMessages.push({
+                text: original,
+                sender: "bot",
+                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+                isHtml: false,
+              });
+            }
           }
         } else {
           updatedMessages.push({
@@ -193,6 +205,7 @@ const ChatPage = () => {
       }
 
       setMessages(updatedMessages);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error sending message:", error.response || error.message);
       setMessages((prevMessages) => [
@@ -203,6 +216,7 @@ const ChatPage = () => {
           icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
         },
       ]);
+      setIsLoading(false);
     }
   };
 
@@ -345,54 +359,82 @@ const ChatPage = () => {
             // فصل المحتوى الرئيسي عن الإضافي
             const { main } = renderContent(msg.text);
 
-            return (
-              <div key={index} className={`chat-message ${msg.sender}`}>
-                <div className="message-text">
-                  {msg.isHtml ? (
-                    <>
-                      {/* عرض المحتوى الرئيسي */}
-                    <div dangerouslySetInnerHTML={{ __html: msg.text }} />
-                    </>
-                  ) : msg.type === "multipleAnswers" ? (
-                    <>
-                      {/* عرض الوصف الشامل أولًا */}
-                      {msg.overview && (
-                        <div
-                          className="overview-description"
-                          dangerouslySetInnerHTML={{ __html: msg.overview }}
-                        />
-                      )}
-
-                      {/* عرض الحقول القابلة للطي */}
-                      {msg.collapsibleItems.map((item, itemIndex) => (
-                        <div key={itemIndex} className="collapsible-item">
-                          <button
-                            onClick={() => toggleItem(index, itemIndex)}
-                            className="collapsible-button"
-                          >
-                            {item.title}
-                          </button>
-                          {item.isExpanded && (
-                            <div
-                              className="collapsible-content"
-                              dangerouslySetInnerHTML={{ __html: item.description }}
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </>
-                  ) : (
+            // If bot, plain text, and not animated yet, show typing animation
+            if (msg.sender === "bot" && !msg.isHtml && !animatedIndexes.includes(index)) {
+              return (
+                <div key={index} className={`chat-message ${msg.sender}`}>
+                  <div className="message-text">
                     <TypeAnimation
-                      sequence={[msg.text, () => {}]}
+                      key={msg.text}
+                      sequence={[
+                        msg.text,
+                        () => {
+                          setAnimatedIndexes((prev) => [...prev, index]);
+                        },
+                      ]}
                       speed={70}
                       repeat={0}
                       wrapper="div"
                     />
-                  )}
+                  </div>
                 </div>
+              );
+            }
+            // If bot, plain text, and animated, show with links
+            if (msg.sender === "bot" && !msg.isHtml && animatedIndexes.includes(index)) {
+              return (
+                <div key={index} className={`chat-message ${msg.sender}`}>
+                  <div className="message-text" dangerouslySetInnerHTML={{ __html: addLinkTargetAttribute(msg.text) }} />
+                </div>
+              );
+            }
+            // If bot and isHtml
+            if (msg.sender === "bot" && msg.isHtml) {
+              return (
+                <div key={index} className={`chat-message ${msg.sender}`}>
+                  <div className="message-text" dangerouslySetInnerHTML={{ __html: msg.text }} />
+                </div>
+              );
+            }
+            // If bot and multipleAnswers
+            if (msg.sender === "bot" && msg.type === "multipleAnswers") {
+              return (
+                <div key={index} className={`chat-message ${msg.sender}`}>
+                  <div className="message-text">
+                    {msg.overview && (
+                      <div
+                        className="overview-description"
+                        dangerouslySetInnerHTML={{ __html: msg.overview }}
+                      />
+                    )}
+                    {msg.collapsibleItems.map((item, itemIndex) => (
+                      <div key={itemIndex} className="collapsible-item">
+                        <button
+                          onClick={() => toggleItem(index, itemIndex)}
+                          className="collapsible-button"
+                        >
+                          {item.title}
+                        </button>
+                        {item.isExpanded && (
+                          <div
+                            className="collapsible-content"
+                            dangerouslySetInnerHTML={{ __html: item.description }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            // User message: just render plain text
+            return (
+              <div key={index} className={`chat-message ${msg.sender}`}>
+                <div className="message-text">{msg.text}</div>
               </div>
             );
           })}
+          {isLoading && <LoadingDots />}
           <div ref={messagesEndRef} />
         </div>
       </div>
