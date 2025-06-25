@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { FiSend } from "react-icons/fi";
-import { GiReturnArrow } from "react-icons/gi";
 import { TypeAnimation } from "react-type-animation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -51,7 +50,7 @@ const ChatPage = () => {
 
   const addLinkTargetAttribute = (html) => {
     // Convert plain URLs to anchor tags
-    const urlRegex = /(https?:\/\/[\w\-\.\/?#&=;%:+,~@!$'()*\[\]]+)/g;
+    const urlRegex = /(https?:\/\/[\w\-.\/?#&=;%:+,~@!$'()*\[\]]+)/g;
     let processed = html.replace(urlRegex, (url) => {
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">${url}</a>`;
     });
@@ -253,60 +252,6 @@ const ChatPage = () => {
     };
   };
 
-  const toggleAdditionalContent = (index) => {
-    setMessages(prevMessages =>
-      prevMessages.map((msg, i) =>
-        i === index ? {...msg, isExpanded: !msg.isExpanded} : msg
-      )
-    );
-  };
-
-  const handleSimilarQuestion = async (id) => {
-    const similarQuestion = messages.find((msg) => msg.id === id);
-    if (!similarQuestion) return;
-
-    try {
-      const response = await axios.post(
-        "https://unachatbot.onrender.com/ask_questions/",
-        {
-          question: similarQuestion.text,
-        }
-      );
-
-      const newMessages = [
-        ...messages,
-        { text: similarQuestion.text, sender: "user" },
-      ];
-
-      if (response.data && response.data.answer) {
-        newMessages.push({
-          text: response.data.answer,
-          sender: "bot",
-          icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-          isHtml: true,
-        });
-      } else {
-        newMessages.push({
-          text: "عذرًا، لم أتمكن من العثور على إجابة لهذا السؤال.",
-          sender: "bot",
-          icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-        });
-      }
-
-      setMessages(newMessages);
-    } catch (error) {
-      console.error("حدث خطأ أثناء إرسال السؤال:", error);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          text: "حدث خطأ أثناء معالجة سؤالك. يرجى المحاولة مرة أخرى.",
-          sender: "bot",
-          icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-        },
-      ]);
-    }
-  };
-
   const startListening = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -356,7 +301,6 @@ const ChatPage = () => {
       <div className="chat-container">
         <div className="chat-messages">
           {messages.map((msg, index) => {
-            // فصل المحتوى الرئيسي عن الإضافي
             const { main } = renderContent(msg.text);
 
             // If bot, plain text, and not animated yet, show typing animation
@@ -465,9 +409,15 @@ const ChatPage = () => {
             placeholder={placeholder}
             className="chat-input"
           />
-          <button type="submit" className="send-button">
+          <button
+            type="submit"
+            className="send-button"
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+          >
             <FiSend />
           </button>
+
           <button
             type="button"
             onMouseDown={startListening}
