@@ -25,7 +25,7 @@ const ChatPage = () => {
   const [useUnaApi, setUseUnaApi] = useState(false);
   const messagesEndRef = useRef(null);
   const [currentDate, setCurrentDate] = useState("");
-  const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا...");
+  const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا....");
   const [isLoading, setIsLoading] = useState(false);
   const [animatedIndexes, setAnimatedIndexes] = useState([]);
 
@@ -81,12 +81,12 @@ const ChatPage = () => {
     setInput("");
     setIsLoading(true);
 
-    // هنا نحضر التاريخ ونرسله مع السؤال
     const history = getChatHistory(newMessages);
 
     const apiUrl = useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
-      : "http://127.0.0.1:8000/chat/";
+      : "https://unachatbot-po0f.onrender.com/chat/";
+
 
     try {
       const response = await axios.post(apiUrl, { question: input, history });
