@@ -62,6 +62,16 @@ const ChatPage = () => {
     return processed;
   };
 
+  function getChatHistory(messages) {
+  // Ignore any system/welcome/init messages if needed
+  return messages
+    .filter(msg => msg.sender === "user" || msg.sender === "bot")
+    .map(msg => ({
+      role: msg.sender === "user" ? "user" : "assistant",
+      content: msg.text
+    }));
+}
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -71,17 +81,15 @@ const ChatPage = () => {
     setInput("");
     setIsLoading(true);
 
+    // هنا نحضر التاريخ ونرسله مع السؤال
+    const history = getChatHistory(newMessages);
+
     const apiUrl = useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
-      : "https://unachatbot-po0f.onrender.com/chat/";
+      : "http://127.0.0.1:8000/chat/";
 
     try {
-      console.log("Sending request to:", apiUrl);
-      console.log("Payload:", { question: input });
-
-      const response = await axios.post(apiUrl, { question: input });
-      console.log("Response Data:", response.data);
-
+      const response = await axios.post(apiUrl, { question: input, history });
       const updatedMessages = [...newMessages];
 
       if (useUnaApi) {
@@ -165,15 +173,6 @@ const ChatPage = () => {
               sender: "bot",
               icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
             });
-
-            if (response.data.answer.trim().toLowerCase() === "none") {
-              updatedMessages.push({
-                text: "لا توجد إجابة على هذا السؤال في الوقت الحالي. يرجى طرح سؤال آخر.",
-                sender: "bot",
-                icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-              });
-            }
-
           } else {
             // Check if the original answer contains real HTML (not just links)
             const original = response.data.answer;
@@ -289,6 +288,8 @@ const ChatPage = () => {
     setUseUnaApi(false); // استخدام API الخاص بالأسئلة العامة
     setPlaceholder("ماذا تريد أن تعرف..."); // تغيير placeholder
   };
+
+
 
   return (
     <div className="chat-page">
