@@ -20,6 +20,16 @@ const LoadingDots = () => (
 );
 
 const ChatPage = () => {
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    document.body.className = theme === "light" ? "light-mode" : "";
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === "dark" ? "light" : "dark"));
+  };
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [useUnaApi, setUseUnaApi] = useState(false);
@@ -295,7 +305,15 @@ const ChatPage = () => {
     <div className="chat-page">
       {/* Header */}
       <div className="chat-header">
-        <img src="/unalogo.png" alt="UNA Logo" className="una-logo" />
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle"
+          title="تبديل الوضع"
+        >
+          {theme === "dark" ? "☀️" : "🌙"}
+        </button>
+
+          <img src={theme === "dark" ? "/unalogo-dark.png" : "/unalogo-light.png"} alt="UNA Logo" className="una-logo" />
         <div className="current-date">{currentDate}</div>
       </div>
       {/* Chat messages container */}

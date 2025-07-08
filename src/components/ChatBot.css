@@ -702,3 +702,98 @@ body {
   40% { opacity: 1; }
 }
 
+
+
+/* Light mode overrides */
+body.light-mode {
+  background-color: white !important;
+  color: black !important;
+}
+
+body.light-mode .chat-page {
+  background-color: white !important;
+}
+
+/* الرسائل */
+body.light-mode .chat-message.user .message-text,
+body.light-mode .chat-message.bot .message-text {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+}
+
+/* حقل السؤال */
+body.light-mode .chat-input {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* زر الإرسال وغيره */
+body.light-mode .api-toggle-button,
+body.light-mode .send-button,
+body.light-mode .collapsible-button,
+body.light-mode .collapsible-content,
+body.light-mode .show-additional-btn {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* زر API النشط */
+body.light-mode .api-toggle-button.active {
+  background-color: black !important;
+  color: white !important;
+}
+
+/* زر الميكروفون */
+body.light-mode .microphone-button {
+  background-color: black !important;
+  color: white !important;
+}
+
+body.light-mode .microphone-button svg,
+body.light-mode .microphone-button i {
+  color: white !important;
+  fill: white !important;
+}
+
+/* الفوتر */
+body.light-mode .footer {
+  background-color: white !important;
+  color: black !important;
+}
+
+body.light-mode .footer a {
+  color: #007bff !important;
+}
+
+body.light-mode .footer .social-icons a {
+  color: #333 !important;
+}
+
+body.light-mode .footer .social-icons a:hover {
+  color: #000 !important;
+}
+
+/* زر تغيير الوضع */
+.theme-toggle {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: #323436;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+body.light-mode .theme-toggle {
+  background: #fff;
+  color: #000;
+}
