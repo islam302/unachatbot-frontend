@@ -1,0 +1,874 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Tajawal", sans-serif !important;
+}
+
+body {
+  font-family: "Tajawal", sans-serif !important;
+}
+
+.chat-page {
+  display: flex;
+  height: 100vh;
+  background-color: #202123;
+}
+
+.una-logo {
+  display: block;
+  margin: 0 auto;
+  width: 400px;
+  height: auto;
+  position: relative;
+  top: -20px;
+}
+/* الوصف الشامل */
+.overview-description {
+  margin-bottom: 1rem;
+  padding: 10px;
+  background: #202123;
+  border-radius: 5px;
+}
+
+/* العناصر القابلة للطي */
+.collapsible-item {
+  margin-bottom: 0.5rem;
+}
+
+.collapsible-button {
+  width: 100%;
+  padding: 10px;
+  text-align: right;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.collapsible-button:hover {
+  background: #d0d0d0;
+}
+/* أنماط المحتوى الإضافي */
+.additional-content-container {
+  margin-top: 1rem;
+}
+
+.show-additional-btn {
+  background: #323436;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  margin: 10px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.show-additional-btn:hover {
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.arrow {
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transition: transform 0.3s ease;
+}
+
+.arrow.down {
+  transform: rotate(45deg);
+}
+
+.arrow.up {
+  transform: rotate(-135deg);
+}
+
+.additional-content {
+  display: inline-block;
+  background: #323436;
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  animation: slideDown 0.3s ease-out;
+}
+
+.additional-content p {
+  margin: 0.5rem 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.collapsible-content {
+  padding: 10px;
+  margin-top: 5px;
+  background: #f8f8f8;
+  border-radius: 5px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes upDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.robot-container {
+  position: absolute;
+  top: 2%;
+  right: 27%;
+  width: 7%;
+  height: 14%;
+  animation: upDown 2s ease-in-out infinite;
+}
+
+.index-module_type__E-SaG::after {
+  content: "";
+  display: none;
+}
+
+.chat-container {
+  padding-bottom: 80px;
+  padding-top: 20px;
+  background: transparent;
+  margin: auto;
+  width: 60%;
+  height: 60%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chat-header {
+  height: 10%;
+  position: absolute;
+  width: 100%;
+  top: 20px;
+  color: white;
+  text-align: center;
+}
+
+.chat-messages {
+  background: transparent;
+  position: relative;
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chat-messages::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-message {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: transform 0.3s ease-in-out;
+  margin-bottom: 10px;
+}
+
+.similar-question-button {
+  background-color: #323436;
+  color: #ffff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.similar-question-button:hover {
+  background-color: #85c9b5;
+}
+
+.message-explanation {
+  margin-top: 10px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.message-avatar {
+  width: 50px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.chat-message.bot .message-text {
+  max-width: 35%;
+  max-height: auto;
+  min-width: 100px;
+  font-size: 1.1rem;
+  background-color: #202123;
+  color: #ffffff;
+  border-radius: 15px;
+  padding: 12px;
+  margin: 5px;
+  animation: fadeIn 0.4s ease-in-out;
+  text-align: right;
+  direction: rtl;
+  margin-right: 400px;
+  visibility: hidden;
+}
+
+.message-text a {
+    color: #2e89a8; /* لون أزرق فاتح */
+    text-decoration: none; /* إزالة الخط السفلي إذا رغبت */
+}
+
+.message-text a:hover {
+    text-decoration: underline; /* إضافة خط عند التحويم */
+}
+
+.chat-message.bot .message-text:not(:empty) {
+  visibility: visible;
+}
+
+.chat-message.user .message-text {
+  max-width: 70%;
+  font-size: 1.1rem;
+  background-color: #323436;
+  color: #fff;
+  border-radius: 15px;
+  padding: 12px;
+  margin: 5px;
+  animation: fadeIn 0.4s ease-in-out;
+  margin-right: 400px;
+}
+
+.api-toggle-buttons-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-direction: row;
+  margin-right: 10px;
+  margin-top: 3%;
+}
+
+.api-toggle-button {
+  background-color: #323436;
+  color: white;
+  border: none;
+  width: 20%;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  border-radius: 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.api-toggle-button.active {
+  background-color: white;
+  color: #0c0c0c;
+}
+
+.api-toggle-button:hover {
+  background-color: rgba(136, 136, 136, 0.68);
+}
+
+.chat-input-form {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 20%;
+  left: 50%;
+  top: 77%;
+  transform: translateX(-50%);
+  width: 65%;
+  margin: auto;
+  border-radius: 15px;
+  overflow: hidden;
+  height: fit-content;
+}
+
+.chat-input {
+  flex: 1;
+  background-color: #323436;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.2rem;
+  color: white;
+  outline: none;
+  height: 80px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: right;
+  direction: rtl;
+}
+
+.send-button {
+  background-color: #323436;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  margin-top: 15px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.send-button:hover {
+  background-color: rgba(255, 255, 255, 0.68);
+  transform: scale(1.05);
+}
+
+.microphone-button {
+  border: none;
+  background: #323436;
+  border-radius: 50%;
+  transform: scale(1.05);
+  width: 45px;
+  height: 45px;
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.microphone-button:hover {
+  background-color: rgba(255, 255, 255, 0.68);
+  transform: scale(1.05);
+}
+
+.microphone-button:active {
+  transform: scale(0.95);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.footer {
+  position: fixed;
+  bottom: -4px;
+  width: 100%;
+  color: #ffffff;
+  text-align: center;
+}
+
+.social-icons {
+  margin: 0px 0;
+}
+
+.social-icons a {
+  color: #fff;
+  margin: 0 10px;
+  font-size: 25px;
+  transition: color 0.3s;
+}
+
+.social-icons a:hover {
+  color: #FFFFFFAD;
+}
+
+.current-date {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: white;
+  background-color: #323436;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.collapsible-item {
+  margin-bottom: 15px;
+}
+
+.collapsible-button {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  padding: 15px;
+  font-size: 18px;
+  text-align: right;
+  color: white;
+  background-color: #323436;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.collapsible-button:hover {
+  background-color: #FFFFFFAD;
+  transform: scale(1.02);
+}
+
+.collapsible-content {
+  padding: 15px;
+  background-color: #323436;
+  border: 1px solid #656464;
+  border-radius: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #fff;
+  line-height: 1.8;
+  text-align: right;
+  max-width: 600px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-question-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Media queries for responsiveness */
+/* القواعد العامة للتصميم */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Tajawal", sans-serif !important;
+}
+
+body {
+  font-family: "Tajawal", sans-serif !important;
+}
+
+.chat-page {
+  display: flex;
+  height: 100vh;
+  background-color: #202123;
+}
+
+/* التصميم الأساسي للصفحة */
+.chat-container {
+  padding: 20px 0 80px;
+  background: transparent;
+  margin: auto;
+  width: 60%;
+  height: 60%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chat-header {
+  position: absolute;
+  width: 100%;
+  top: 20px;
+  color: white;
+  text-align: center;
+}
+
+.api-toggle-buttons-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px 0;
+  flex-direction: row;
+}
+
+.api-toggle-button {
+  background-color: #323436;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.api-toggle-button.active {
+  background-color: white;
+  color: #0a4c5a;
+}
+
+/* إعدادات responsive */
+
+/* الشاشات الكبيرة */
+@media (max-width: 1024px) {
+  .chat-container {
+    width: 85%;
+  }
+
+  .chat-input-form {
+    width: 85%;
+  }
+
+  .robot-container {
+    top: 2%;
+    right: 23%;
+  }
+}
+
+/* الشاشات المتوسطة */
+@media (max-width: 768px) {
+  .chat-container {
+    width: 90%;
+  }
+  .robot-container {
+    display: none;
+  }
+  .chat-input-form {
+    width: 90%;
+  }
+
+  .chat-message.bot .message-text,
+  .chat-message.user .message-text {
+    max-width: 70%;
+    margin-right: 120px;
+  }
+
+  .una-logo {
+    width: 350px;
+  }
+
+  .current-date {
+    top: 85px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  .api-toggle-button {
+    width: 45%;
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+}
+
+/* الشاشات الصغيرة */
+@media (max-width: 480px) {
+  .una-logo {
+    width: 300px;
+  }
+
+
+  .robot-container {
+    display: none;
+  }
+
+  .current-date {
+    top: 80px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  .chat-container {
+    width: 100%;
+  }
+
+  .chat-input-form {
+    width: 100%;
+  }
+
+  .chat-message.bot .message-text,
+  .chat-message.user .message-text {
+    max-width: 90%;
+    margin-right: 0;
+  }
+
+  .send-button,
+  .microphone-button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+  }
+
+  .footer {
+    font-size: 0.7rem;
+  }
+
+  .social-icons a {
+    font-size: 20px;
+    margin: 0 5px;
+  }
+
+  .api-toggle-buttons-container {
+    flex-direction: row;
+    gap: 5px;
+  }
+}
+
+/* أصغر الشاشات */
+@media (max-width: 320px) {
+  .una-logo {
+    width: 200px;
+  }
+  .robot-container {
+    display: none;
+  }
+  .chat-message.bot .message-text,
+  .chat-message.user .message-text {
+    max-width: 100%;
+    margin-right: 0;
+  }
+
+  .send-button,
+  .microphone-button {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .footer {
+    font-size: 0.6rem;
+  }
+
+  .social-icons a {
+    font-size: 18px;
+    margin: 0 3px;
+  }
+
+  .current-date {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .api-toggle-buttons-container {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3.5rem;
+  color: #fff;
+  height: 48px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.loading-dots .dot {
+  animation: blink 1.4s infinite both;
+  margin: 0 2px;
+}
+.loading-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+
+
+
+/* Light mode overrides */
+body.light-mode {
+  background-color: white !important;
+  color: black !important;
+}
+
+body.light-mode .chat-page {
+  background-color: white !important;
+}
+
+/* الرسائل */
+body.light-mode .chat-message.user .message-text,
+body.light-mode .chat-message.bot .message-text {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+}
+
+/* حقل السؤال */
+body.light-mode .chat-input {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* زر الإرسال وغيره */
+body.light-mode .api-toggle-button,
+body.light-mode .send-button,
+body.light-mode .collapsible-button,
+body.light-mode .collapsible-content,
+body.light-mode .show-additional-btn {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* زر API النشط */
+body.light-mode .api-toggle-button.active {
+  background-color: black !important;
+  color: white !important;
+}
+
+/* زر الميكروفون */
+body.light-mode .microphone-button {
+  background-color: black !important;
+  color: white !important;
+}
+
+body.light-mode .microphone-button svg,
+body.light-mode .microphone-button i {
+  color: white !important;
+  fill: white !important;
+}
+
+/* الفوتر */
+body.light-mode .footer {
+  background-color: white !important;
+  color: black !important;
+}
+
+body.light-mode .footer a {
+  color: #007bff !important;
+}
+
+body.light-mode .footer .social-icons a {
+  color: #333 !important;
+}
+
+body.light-mode .footer .social-icons a:hover {
+  color: #000 !important;
+}
+
+/* زر تغيير الوضع */
+.theme-toggle {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: #323436;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+body.light-mode .theme-toggle {
+  background: #fff;
+  color: #000;
+}
+
+
+/* Add this to your ChatBot.css file */
+
+/* --- Improves spacing and readability for all bot messages --- */
+.chat-message.bot .message-text {
+  line-height: 1.6; /* Increases line height for better readability of long text */
+}
+
+/* --- Styles for paragraphs --- */
+.chat-message.bot .message-text p {
+  margin-top: 0;
+  margin-bottom: 12px; /* Adds space BETWEEN paragraphs */
+}
+
+/* --- Styles for lists --- */
+.chat-message.bot .message-text ul,
+.chat-message.bot .message-text ol {
+  padding-right: 20px; /* Adds space for the list numbers/bullets in RTL */
+  margin-top: 5px;
+  margin-bottom: 12px;
+}
+
+.chat-message.bot .message-text li {
+  margin-bottom: 8px; /* Adds space between individual list items */
+  padding-right: 5px;
+}
+
+/* --- Removes margin from the very last element in a message bubble --- */
+.chat-message.bot .message-text p:last-child,
+.chat-message.bot .message-text ul:last-child,
+.chat-message.bot .message-text ol:last-child {
+  margin-bottom: 0;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.staggered-animation-container > * {
+  /* Set the initial state of all children to hidden */
+  opacity: 0;
+  /* Apply the animation */
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* --- Add a delay to each child to create the staggered effect --- */
+/* This is the magic part */
+.staggered-animation-container > *:nth-child(1) {
+  animation-delay: 0.4s;
+}
+.staggered-animation-container > *:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.staggered-animation-container > *:nth-child(3) {
+  animation-delay: 0.8s;
+}
+.staggered-animation-container > *:nth-child(4) {
+  animation-delay: 1.0s;
+}
+.staggered-animation-container > *:nth-child(5) {
+  animation-delay: 1.2s;
+}
+/* Add more if you expect very long responses */
+.staggered-animation-container > *:nth-child(6) {
+  animation-delay: 1.4s;
+}
