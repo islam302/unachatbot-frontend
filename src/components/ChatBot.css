@@ -523,7 +523,7 @@ body {
   border-radius: 15px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .api-toggle-button.active {
@@ -798,8 +798,24 @@ body.light-mode .theme-toggle {
   color: #000;
 }
 
+/* Custom typewriter effect styles */
+.typing-animation {
+  display: inline-block;
+}
 
-/* Add this to your ChatBot.css file */
+.typing-cursor {
+  animation: blink 1s infinite;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typed-complete {
+  animation: fadeIn 0.3s ease-in;
+}
 
 /* --- Improves spacing and readability for all bot messages --- */
 .chat-message.bot .message-text {

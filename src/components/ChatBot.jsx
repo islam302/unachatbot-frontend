@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { FiSend } from "react-icons/fi";
-import { TypeAnimation } from "react-type-animation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFacebook,
@@ -57,60 +56,71 @@ const ChatPage = () => {
     setCurrentDate(formattedDate);
   }, []);
 
-  const addLinkTargetAttribute = (html) => {
-    // Convert plain URLs to anchor tags
-    const urlRegex = /(https?:\/\/[\w\-.\/?#&=;%:+,~@!$'()*\[\]]+)/g;
-    let processed = html.replace(urlRegex, (url) => {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">${url}</a>`;
-    });
-    // Ensure all <a> tags have the correct attributes and style
-    processed = processed.replace(
-      /<a (?![^>]*target=)/g,
-      '<a target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;" '
-    );
-    return processed;
-  };
   const formatBotResponse = (text) => {
-    const lines = text.split('\n');
+    // Check if the text already contains HTML tags (indicating it's already processed)
+    const containsHtml = /<[^>]+>/.test(text);
+    
+    if (containsHtml) {
+      // If it's already HTML, return as-is
+      return text;
+    }
+
+
+    // Process URLs more carefully to avoid corrupting HTML
+    const processUrls = (inputText) => {
+      // Find all URLs in the text
+      const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+      const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|svg|webp)$/i;
+      
+      return inputText.replace(urlRegex, (url) => {
+        // Check if this URL is for an image
+        if (imageExtensions.test(url)) {
+          const imgTag = `<img src="${url}" alt="Image from bot" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;" />`;
+          return imgTag;
+        } else {
+          const linkTag = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">اضغط هنا</a>`;
+          return linkTag;
+        }
+      });
+    };
+
+    // First process URLs
+    let processedText = processUrls(text);
+
+    const lines = processedText.split('\n');
     let html = '';
     let listType = null;
     let inList = false;
 
     lines.forEach(line => {
-      line = line.trim();
+      const trimmedLine = line.trim();
 
-      // --- THIS IS THE FIX ---
-      // If the line is empty, skip it and do nothing.
-      // This prevents it from closing the list.
-      if (!line) {
-        return;
-      }
-
-      if (/^\d+\.\s/.test(line)) { // Matches "1. ", "2. ", etc.
+      if (/^\d+\.\s/.test(trimmedLine)) {
         if (!inList || listType !== 'ol') {
           if (inList) html += `</${listType}>`;
           html += '<ol>';
           inList = true;
           listType = 'ol';
         }
-        html += `<li>${line.substring(line.indexOf(' ') + 1)}</li>`;
-      } else if (/^-\s/.test(line)) { // Matches "- "
+        html += `<li>${trimmedLine.substring(trimmedLine.indexOf(' ') + 1)}</li>`;
+      } else if (/^-\s/.test(trimmedLine)) {
         if (!inList || listType !== 'ul') {
           if (inList) html += `</${listType}>`;
           html += '<ul>';
           inList = true;
           listType = 'ul';
         }
-        html += `<li>${line.substring(2)}</li>`;
+        html += `<li>${trimmedLine.substring(2)}</li>`;
       } else {
-        // This part now only runs for non-empty, non-list lines
         if (inList) {
           html += `</${listType}>`;
           inList = false;
           listType = null;
         }
-        const formattedLine = line.replace(/\.\s/g, '.<br> ');
-        html += `<p>${formattedLine}</p>`;
+        // Only add non-empty lines as paragraphs. This avoids adding empty <p> tags.
+        if (trimmedLine) {
+          html += `<p>${line}</p>`; // Use original line to preserve content inside tags
+        }
       }
     });
 
@@ -118,15 +128,16 @@ const ChatPage = () => {
       html += `</${listType}>`;
     }
 
-    return addLinkTargetAttribute(html);
+    return html;
   };
+
   function getChatHistory(messages) {
   // Ignore any system/welcome/init messages if needed
   return messages
     .filter(msg => msg.sender === "user" || msg.sender === "bot")
     .map(msg => ({
       role: msg.sender === "user" ? "user" : "assistant",
-      content: msg.text
+      content: msg.originalText || msg.text // Use originalText if available, fallback to text
     }));
 }
 
@@ -212,14 +223,14 @@ const ChatPage = () => {
               const [titlePart, ...descParts] = line.split(":");
               return {
                 title: titlePart.replace("-", "").trim(),
-                description: addLinkTargetAttribute(descParts.join(":").trim()),
+                description: formatBotResponse(descParts.join(":").trim()),
                 isExpanded: false
               };
             });
 
           updatedMessages.push({
             sender: "bot",
-            overview: addLinkTargetAttribute(overview),
+            overview: formatBotResponse(overview),
             collapsibleItems: collapsibleItems,
             type: "multipleAnswers"
           });
@@ -240,6 +251,7 @@ const ChatPage = () => {
 
             updatedMessages.push({
               text: formattedText,
+              originalText: originalAnswer, // Store the original text for chat history
               sender: "bot",
               icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
               isHtml: true, // Always treat the output as HTML now
@@ -378,7 +390,7 @@ const ChatPage = () => {
               return (
                   <div key={index} className={`chat-message ${msg.sender}`}>
                     <div className="message-text">
-                      <AnimatedBotMessage htmlContent={msg.text} messagesEndRef={messagesEndRef} />
+                      <AnimatedBotMessage htmlContent={msg.text} />
                     </div>
                   </div>
               );
@@ -390,6 +402,7 @@ const ChatPage = () => {
             );
           })}
           {isLoading && <LoadingDots />}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
