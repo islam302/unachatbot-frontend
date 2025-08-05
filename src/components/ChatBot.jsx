@@ -56,6 +56,11 @@ const ChatPage = () => {
     setCurrentDate(formattedDate);
   }, []);
 
+  // Helper function to ensure all links have target="_blank" attribute
+  const addLinkTargetAttribute = (html) => {
+    return html.replace(/<a(?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer"');
+  };
+
   const formatBotResponse = (text) => {
     // Check if the text already contains HTML tags (indicating it's already processed)
     const containsHtml = /<[^>]+>/.test(text);
@@ -93,34 +98,40 @@ const ChatPage = () => {
     let inList = false;
 
     lines.forEach(line => {
-      const trimmedLine = line.trim();
+      line = line.trim();
 
-      if (/^\d+\.\s/.test(trimmedLine)) {
+      // If the line is empty, skip it and do nothing.
+      // This prevents it from closing the list.
+      if (!line) {
+        return;
+      }
+
+      if (/^[\d١-٩]+\.\s/.test(line)) { // Matches "1. ", "2. ", "١. ", "٢. ", etc.
         if (!inList || listType !== 'ol') {
           if (inList) html += `</${listType}>`;
           html += '<ol>';
           inList = true;
           listType = 'ol';
         }
-        html += `<li>${trimmedLine.substring(trimmedLine.indexOf(' ') + 1)}</li>`;
-      } else if (/^-\s/.test(trimmedLine)) {
+        html += `<li>${line.substring(line.indexOf(' ') + 1)}</li>`;
+      } else if (/^-\s/.test(line)) { // Matches "- "
         if (!inList || listType !== 'ul') {
           if (inList) html += `</${listType}>`;
           html += '<ul>';
           inList = true;
           listType = 'ul';
         }
-        html += `<li>${trimmedLine.substring(2)}</li>`;
+        html += `<li>${line.substring(2)}</li>`;
       } else {
+        // This part now only runs for non-empty, non-list lines
         if (inList) {
           html += `</${listType}>`;
           inList = false;
           listType = null;
         }
-        // Only add non-empty lines as paragraphs. This avoids adding empty <p> tags.
-        if (trimmedLine) {
-          html += `<p>${line}</p>`; // Use original line to preserve content inside tags
-        }
+        // Add sentence formatting with <br> after periods (from old function)
+        const formattedLine = line.replace(/\.\s/g, '.<br> ');
+        html += `<p>${formattedLine}</p>`;
       }
     });
 
