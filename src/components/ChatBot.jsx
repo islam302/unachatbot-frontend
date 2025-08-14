@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import { FiSend } from "react-icons/fi";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,6 +36,7 @@ const ChatPage = () => {
   const [currentDate, setCurrentDate] = useState("");
   const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا....");
   const [isLoading, setIsLoading] = useState(false);
+  const [isBotAnimating, setIsBotAnimating] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,10 +157,12 @@ const ChatPage = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { text: input, sender: "user" }];
+    const userMessage = { text: input, sender: "user", id: Date.now() };
+    const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+    setIsBotAnimating(true); // Start animating
 
     const history = getChatHistory(newMessages);
 
@@ -266,6 +269,7 @@ const ChatPage = () => {
               sender: "bot",
               icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
               isHtml: true, // Always treat the output as HTML now
+              id: Date.now() + Math.random(), // Unique ID for each bot message
             });
           }
         } else {
@@ -278,7 +282,7 @@ const ChatPage = () => {
       }
 
       setMessages(updatedMessages);
-      setIsLoading(false);
+      setIsLoading(false); // Set loading OFF
     } catch (error) {
       // This is the block that will run for the 404 error
       // It uses your exact desired message.
@@ -293,9 +297,12 @@ const ChatPage = () => {
       ]);
     } finally {
       // This block will ALWAYS run after the try or catch is finished.
-      setIsLoading(false); // Set loading OFF
     }
   };
+
+  const handleAnimationComplete = useCallback(() => {
+    setIsBotAnimating(false);
+  }, []);
 
   const toggleItem = (messageIndex, itemIndex) => {
     setMessages((prevMessages) =>
@@ -340,6 +347,12 @@ const ChatPage = () => {
     }
 
     const recognition = new SpeechRecognition();
+    
+    // Configure for Arabic language
+    recognition.lang = 'ar-SA'; // Arabic (Saudi Arabia) - you can also use 'ar-EG' for Egyptian Arabic
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
       console.log("Voice recognition started. Speak into the microphone.");
@@ -353,6 +366,9 @@ const ChatPage = () => {
 
     recognition.onerror = (event) => {
       console.error("Error occurred in recognition: " + event.error);
+      if (event.error === 'language-not-supported') {
+        alert("Arabic language is not supported by your browser for speech recognition.");
+      }
     };
 
     recognition.start();
@@ -389,25 +405,24 @@ const ChatPage = () => {
       <div className="chat-container">
         <div className="chat-messages">
           {messages.map((msg, index) => {
+            const isLastMessage = index === messages.length - 1;
             const { main } = renderContent(msg.text);
-
-
-
-
-
 
             // For ALL bot messages, use the new animated component
             if (msg.sender === 'bot') {
               return (
-                  <div key={index} className={`chat-message ${msg.sender}`}>
+                  <div key={msg.id || `bot-${index}`} className={`chat-message ${msg.sender}`}>
                     <div className="message-text">
-                      <AnimatedBotMessage htmlContent={msg.text} />
+                      <AnimatedBotMessage
+                        htmlContent={msg.text}
+                        onAnimationComplete={isLastMessage ? handleAnimationComplete : undefined}
+                      />
                     </div>
                   </div>
               );
             }
             return (
-                <div key={index} className={`chat-message ${msg.sender}`}>
+                <div key={msg.id || `user-${index}`} className={`chat-message ${msg.sender}`}>
                   <div className="message-text">{msg.text}</div>
                 </div>
             );
@@ -446,8 +461,8 @@ const ChatPage = () => {
           <button
             type="submit"
             className="send-button"
-            disabled={isLoading}
-            style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+            disabled={isLoading || isBotAnimating}
+            style={{ opacity: isLoading || isBotAnimating ? 0.6 : 1, cursor: isLoading || isBotAnimating ? "not-allowed" : "pointer" }}
           >
             <FiSend />
           </button>
@@ -477,7 +492,7 @@ const ChatPage = () => {
       {/* Footer */}
       <div className="footer">
         <p>
-          © حقوق الطبع والنشر 2025{" "}
+          حقوق الطبع والنشر 2025{" "}
           <a
               href="https://una-oic.org/"
               target="_blank"
