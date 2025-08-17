@@ -168,7 +168,7 @@ const ChatPage = () => {
   const history = getChatHistory(newMessages);
 
   const apiUrl = useFactCheckApi
-    ? "http://127.0.0.1:8000/fact-check/"
+    ? "https://unachatbot-po0f.onrender.com/fact-check/"
     : useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
       : "https://unachatbot-po0f.onrender.com/chat/";
