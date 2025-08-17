@@ -37,6 +37,7 @@ const ChatPage = () => {
   const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا....");
   const [isLoading, setIsLoading] = useState(false);
   const [isBotAnimating, setIsBotAnimating] = useState(false);
+  const [useFactCheckApi, setUseFactCheckApi] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -154,151 +155,170 @@ const ChatPage = () => {
 }
 
   const sendMessage = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  e.preventDefault();
+  if (!input.trim()) return;
 
-    const userMessage = { text: input, sender: "user", id: Date.now() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    setInput("");
-    setIsLoading(true);
-    setIsBotAnimating(true); // Start animating
+  const userMessage = { text: input, sender: "user", id: Date.now() };
+  const newMessages = [...messages, userMessage];
+  setMessages(newMessages);
+  setInput("");
+  setIsLoading(true);
+  setIsBotAnimating(true); // Start animating
 
-    const history = getChatHistory(newMessages);
+  const history = getChatHistory(newMessages);
 
-    const apiUrl = useUnaApi
+  const apiUrl = useFactCheckApi
+    ? "http://127.0.0.1:8000/fact-check/"
+    : useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
       : "https://unachatbot-po0f.onrender.com/chat/";
 
+  try {
 
-    try {
-      const response = await axios.post(apiUrl, { question: input, history });
-      const updatedMessages = [...newMessages];
+    const response = await axios.post(
+      apiUrl,
+      useFactCheckApi
+        ? {
+            query: input,
+            version: "v3",
+            mode: "sync",
+            timeout: 200,
+          }
+        : { question: input, history }
+    );
 
-      if (useUnaApi) {
-        if (response.data.answer && response.data.answer.length > 0) {
-          response.data.answer.forEach((answer) => {
-            if (answer.search_url) {
-              updatedMessages.push({
-                text: `
-                  <div style="text-align: center;">
-                    <a href="${answer.search_url}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
-                       لللإطلاع على المزيد من الأخبار إضغط هنا
-                    </a>
-                  </div>
-                `,
-                sender: "bot",
-                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-                isHtml: true,
-              });
-            } else {
-              const imageHtml = answer.image_url
-                ? `<img src="${answer.image_url}" alt="Image" style="width: 100%; height: auto; margin-top: 10px; border-radius: 10px;">`
-                : "";
+    const updatedMessages = [...newMessages];
 
-              updatedMessages.push({
-                text: `
-                  <div style="border: 1px solid #ddd; border-radius: 10px; overflow: hidden; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    ${imageHtml}
-                    <p style="color: #ffffff; font-size: 12px; margin-top: 10px; text-align: center;">${answer.date}</p>
-                    <h3 style="font-size: 18px; color: #ffffff; margin-top: 10px;">${answer.title}</h3>
-                    <p style="color: #ffffff; font-size: 14px; line-height: 1.6; margin-top: 10px;">${answer.content}</p>
-                    <a href="${answer.link}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
-                      أكمل القراءة
-                    </a>
-                  </div>
-                `,
-                sender: "bot",
-                icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-                isHtml: true,
-              });
-            }
+    if (useFactCheckApi) {
+      const { overall_assessment } = response.data.data;
+
+      updatedMessages.push({
+        text: overall_assessment || "لا يوجد تقييم متاح.",
+        sender: "bot",
+        icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+      });
+
+      setMessages(updatedMessages);
+      setIsLoading(false);
+      return;
+    }
+
+    if (useUnaApi) {
+      if (response.data.answer && response.data.answer.length > 0) {
+        response.data.answer.forEach((answer) => {
+          if (answer.search_url) {
+            updatedMessages.push({
+              text: `
+                <div style="text-align: center;">
+                  <a href="${answer.search_url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
+                    لللإطلاع على المزيد من الأخبار إضغط هنا
+                  </a>
+                </div>
+              `,
+              sender: "bot",
+              icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+              isHtml: true,
+            });
+          } else {
+            const imageHtml = answer.image_url
+              ? `<img src="${answer.image_url}" alt="Image" style="width: 100%; height: auto; margin-top: 10px; border-radius: 10px;">`
+              : "";
+
+            updatedMessages.push({
+              text: `
+                <div style="border: 1px solid #ddd; border-radius: 10px; overflow: hidden; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                  ${imageHtml}
+                  <p style="color: #ffffff; font-size: 12px; margin-top: 10px; text-align: center;">${answer.date}</p>
+                  <h3 style="font-size: 18px; color: #ffffff; margin-top: 10px;">${answer.title}</h3>
+                  <p style="color: #ffffff; font-size: 14px; line-height: 1.6; margin-top: 10px;">${answer.content}</p>
+                  <a href="${answer.link}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: #007bff; text-decoration: underline; font-weight: bold; display: inline-block; margin-top: 10px; text-align: center;">
+                    أكمل القراءة
+                  </a>
+                </div>
+              `,
+              sender: "bot",
+              icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+              isHtml: true,
+            });
+          }
+        });
+      } else {
+        updatedMessages.push({
+          text: "آسف، لم أتمكن من العثور على إجابة.",
+          sender: "bot",
+          icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+        });
+      }
+    } else {
+      if (response.data.answer_type === "multiple") {
+        const overview = response.data.overview_description || "";
+        const collapsibleItems = response.data.answer
+          .split("\n")
+          .filter(line => line.startsWith("-"))
+          .map(line => {
+            const [titlePart, ...descParts] = line.split(":");
+            return {
+              title: titlePart.replace("-", "").trim(),
+              description: formatBotResponse(descParts.join(":").trim()),
+              isExpanded: false
+            };
           });
-        } else {
+
+        updatedMessages.push({
+          sender: "bot",
+          overview: formatBotResponse(overview),
+          collapsibleItems: collapsibleItems,
+          type: "multipleAnswers"
+        });
+      } else if (response.data.answer) {
+        if (response.data.answer.trim().toLowerCase() === "none") {
           updatedMessages.push({
-            text: "آسف، لم أتمكن من العثور على إجابة.",
+            text: "لا توجد إجابة على هذا السؤال في الوقت الحالي. يرجى طرح سؤال آخر.",
             sender: "bot",
             icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+          });
+        } else {
+          const originalAnswer = response.data.answer;
+          const formattedText = formatBotResponse(originalAnswer);
+
+          updatedMessages.push({
+            text: formattedText,
+            originalText: originalAnswer,
+            sender: "bot",
+            icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+            isHtml: true,
+            id: Date.now() + Math.random(),
           });
         }
       } else {
-        if (response.data.answer_type === "multiple") {
-          const overview = response.data.overview_description || "";
-          const collapsibleItems = response.data.answer
-            .split("\n")
-            .filter(line => line.startsWith("-"))
-            .map(line => {
-              const [titlePart, ...descParts] = line.split(":");
-              return {
-                title: titlePart.replace("-", "").trim(),
-                description: formatBotResponse(descParts.join(":").trim()),
-                isExpanded: false
-              };
-            });
-
-          updatedMessages.push({
-            sender: "bot",
-            overview: formatBotResponse(overview),
-            collapsibleItems: collapsibleItems,
-            type: "multipleAnswers"
-          });
-        } else if (response.data.answer) {
-          // Handle "none" response
-          if (response.data.answer.trim().toLowerCase() === "none") {
-            updatedMessages.push({
-              text: "لا توجد إجابة على هذا السؤال في الوقت الحالي. يرجى طرح سؤال آخر.",
-              sender: "bot",
-              icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-            });
-          } else {
-            const originalAnswer = response.data.answer;
-
-            // No need to check for isRealHtml anymore, our formatter handles it.
-            // We format the text into proper HTML (lists, paragraphs) and then add link attributes.
-            const formattedText = formatBotResponse(originalAnswer);
-
-            updatedMessages.push({
-              text: formattedText,
-              originalText: originalAnswer, // Store the original text for chat history
-              sender: "bot",
-              icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-              isHtml: true, // Always treat the output as HTML now
-              id: Date.now() + Math.random(), // Unique ID for each bot message
-            });
-          }
-        } else {
-          updatedMessages.push({
-            text: "آسف، لم أتمكن من العثور على الإجابة.",
-            sender: "bot",
-            icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-          });
-        }
-      }
-
-      setMessages(updatedMessages);
-      setIsLoading(false); // Set loading OFF
-    } catch (error) {
-      // This is the block that will run for the 404 error
-      // It uses your exact desired message.
-      console.error("Error sending message:", error.response || error.message);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          text: "<P>عذراً لا يمكنني توفير إجابة لهذا السؤال. أنا لازلت تحت التدريب للإجابة على كل الأسئلة في سياق مجال عملنا. إذا كان سؤالك في هذا المجال، أعدك بتوفير الإجابة في المرة القادمة.</P>",
+        updatedMessages.push({
+          text: "آسف، لم أتمكن من العثور على الإجابة.",
           sender: "bot",
           icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
-        },
-      ]);
-    } finally {
-      // This block will ALWAYS run after the try or catch is finished.
+        });
+      }
     }
-  };
+
+    setMessages(updatedMessages);
+    setIsLoading(false);
+  } catch (error) {
+    console.error("Error sending message:", error.response || error.message);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        text: "<P>عذراً لا يمكنني توفير إجابة لهذا السؤال. أنا لازلت تحت التدريب للإجابة على كل الأسئلة في سياق مجال عملنا. إذا كان سؤالك في هذا المجال، أعدك بتوفير الإجابة في المرة القادمة.</P>",
+        sender: "bot",
+        icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+      },
+    ]);
+  }
+};
 
   const handleAnimationComplete = useCallback(() => {
     setIsBotAnimating(false);
@@ -374,15 +394,23 @@ const ChatPage = () => {
     recognition.start();
   };
 
-  const handleUnaClick = () => {
-    setUseUnaApi(true); // استخدام API الخاص بـ يونا
-    setPlaceholder("اسأل عن خبر من منصة يونا..."); // تغيير placeholder
-  };
-
   const handleGeneralClick = () => {
-    setUseUnaApi(false); // استخدام API الخاص بالأسئلة العامة
-    setPlaceholder("ماذا تريد أن تعرف..."); // تغيير placeholder
-  };
+  setUseUnaApi(false);
+  setUseFactCheckApi(false);
+  setPlaceholder("ماذا تريد أن تعرف...");
+};
+
+  const handleUnaClick = () => {
+  setUseUnaApi(true);
+  setUseFactCheckApi(false);
+  setPlaceholder("اسأل عن خبر من منصة يونا...");
+};
+
+  const handleFactCheckClick = () => {
+      setUseFactCheckApi(true);
+      setUseUnaApi(false);
+      setPlaceholder("أدخل عنوان الخبر المراد التحقق منه...");
+    };
 
 
 
@@ -435,20 +463,31 @@ const ChatPage = () => {
       {/* Message input form */}
       <form onSubmit={sendMessage} className="chat-input-form">
         <div className="api-toggle-buttons-container">
-          <button
-            type="button"
-            onClick={handleGeneralClick}
-            className={`api-toggle-button ${!useUnaApi ? "active" : ""}`}
-          >
-            أسئلة عامة
-          </button>
-          <button
-            type="button"
-            onClick={handleUnaClick}
-            className={`api-toggle-button ${useUnaApi ? "active" : ""}`}
-          >
-            (UNA) أسئلة من منصة
-          </button>
+        <button
+          type="button"
+          onClick={handleGeneralClick}
+          className={`api-toggle-button ${!useUnaApi && !useFactCheckApi ? "active" : ""}`}
+        >
+          أسئلة عامة
+        </button>
+
+        <button
+          type="button"
+          onClick={handleUnaClick}
+          className={`api-toggle-button ${useUnaApi ? "active" : ""}`}
+        >
+          (UNA) أسئلة من منصة
+        </button>
+
+        <button
+          type="button"
+          onClick={handleFactCheckClick}
+          className={`api-toggle-button ${useFactCheckApi ? "active" : ""}`}
+        >
+          كشف الأخبار الكاذبة
+        </button>
+
+
         </div>
         <div className="form-question-container">
           <input
