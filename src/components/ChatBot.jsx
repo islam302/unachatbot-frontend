@@ -182,7 +182,6 @@ const ChatPage = () => {
             query: input,
             version: "v3",
             mode: "sync",
-            timeout: 200,
           }
         : { question: input, history }
     );
