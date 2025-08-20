@@ -37,7 +37,6 @@ const ChatPage = () => {
   const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا....");
   const [isLoading, setIsLoading] = useState(false);
   const [isBotAnimating, setIsBotAnimating] = useState(false);
-  const [useFactCheckApi, setUseFactCheckApi] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -167,9 +166,7 @@ const ChatPage = () => {
 
   const history = getChatHistory(newMessages);
 
-  const apiUrl = useFactCheckApi
-    ? "https://unachatbot-po0f.onrender.com/fact-check/"
-    : useUnaApi
+  const apiUrl = useUnaApi
       ? "https://unachatbot-po0f.onrender.com/ask_una/"
       : "https://unachatbot-po0f.onrender.com/chat/";
 
@@ -177,30 +174,10 @@ const ChatPage = () => {
 
     const response = await axios.post(
       apiUrl,
-      useFactCheckApi
-        ? {
-            query: input,
-            version: "v3",
-            mode: "sync",
-          }
-        : { question: input, history }
+        { question: input, history }
     );
 
     const updatedMessages = [...newMessages];
-
-    if (useFactCheckApi) {
-      const { overall_assessment } = response.data.data;
-
-      updatedMessages.push({
-        text: overall_assessment || "لا يوجد تقييم متاح.",
-        sender: "bot",
-        icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-      });
-
-      setMessages(updatedMessages);
-      setIsLoading(false);
-      return;
-    }
 
     if (useUnaApi) {
       if (response.data.answer && response.data.answer.length > 0) {
@@ -395,22 +372,13 @@ const ChatPage = () => {
 
   const handleGeneralClick = () => {
   setUseUnaApi(false);
-  setUseFactCheckApi(false);
   setPlaceholder("ماذا تريد أن تعرف...");
 };
 
   const handleUnaClick = () => {
   setUseUnaApi(true);
-  setUseFactCheckApi(false);
   setPlaceholder("اسأل عن خبر من منصة يونا...");
 };
-
-  const handleFactCheckClick = () => {
-      setUseFactCheckApi(true);
-      setUseUnaApi(false);
-      setPlaceholder("أدخل عنوان الخبر المراد التحقق منه...");
-    };
-
 
 
   return (
@@ -465,7 +433,7 @@ const ChatPage = () => {
         <button
           type="button"
           onClick={handleGeneralClick}
-          className={`api-toggle-button ${!useUnaApi && !useFactCheckApi ? "active" : ""}`}
+            className={`api-toggle-button ${!useUnaApi ? "active" : ""}`}
         >
           أسئلة عامة
         </button>
@@ -477,15 +445,6 @@ const ChatPage = () => {
         >
           (UNA) أسئلة من منصة
         </button>
-
-        <button
-          type="button"
-          onClick={handleFactCheckClick}
-          className={`api-toggle-button ${useFactCheckApi ? "active" : ""}`}
-        >
-          كشف الأخبار الكاذبة
-        </button>
-
 
         </div>
         <div className="form-question-container">
