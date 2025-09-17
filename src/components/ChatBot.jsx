@@ -32,6 +32,10 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [useUnaApi, setUseUnaApi] = useState(false);
+  const [useTreeApi, setUseTreeApi] = useState(false);
+  const [treeQuestions, setTreeQuestions] = useState([]);
+  const [showTreeOptions, setShowTreeOptions] = useState(false);
+  const [treePath, setTreePath] = useState([]);
   const messagesEndRef = useRef(null);
   const [currentDate, setCurrentDate] = useState("");
   const [placeholder, setPlaceholder] = useState("اكتب سؤالك هنا....");
@@ -153,9 +157,147 @@ const ChatPage = () => {
     }));
 }
 
+// Function to fetch tree questions
+const fetchTreeQuestions = async () => {
+  try {
+    const response = await axios.get("https://unachatbot-po0f.onrender.com/api/tree/");
+    console.log("Tree questions response:", response.data);
+    return response.data.tree || [];
+  } catch (error) {
+    console.error("Error fetching tree questions:", error);
+    return [];
+  }
+};
+
+// Function to handle tree question selection
+const handleTreeQuestionSelect = async (question, messageId) => {
+  setIsLoading(true);
+  setIsBotAnimating(true);
+  
+  // Hide the current options by removing the message that contains them
+  const updatedMessages = messages.map(msg => {
+    if (msg.id === messageId && msg.type === 'treeQuestions') {
+      return { ...msg, hidden: true };
+    }
+    return msg;
+  });
+  
+  // Add user's selection as a message
+  updatedMessages.push({
+    text: question.title,
+    sender: "user",
+    id: Date.now(),
+  });
+  
+  try {
+    // If the question has an answer, show it
+    if (question.answer) {
+      const formattedText = formatBotResponse(question.answer);
+      
+      updatedMessages.push({
+        text: formattedText,
+        originalText: question.answer,
+        sender: "bot",
+        icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+        isHtml: true,
+        id: Date.now() + Math.random(),
+      });
+    }
+    
+    // If the question has children, show them as options
+    if (question.has_children && question.children && question.children.length > 0) {
+      // Update path for navigation
+      setTreePath(prev => [...prev, question]);
+      
+      const childrenMessage = {
+        text: "",
+        sender: "bot",
+        type: "treeQuestions",
+        questions: question.children,
+        showBackButton: true,
+        id: Date.now() + 1,
+      };
+      
+      updatedMessages.push(childrenMessage);
+    } else if (!question.answer) {
+      // If no answer and no children, show error
+      updatedMessages.push({
+        text: "آسف، لا توجد معلومات متاحة لهذا السؤال.",
+        sender: "bot",
+        icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+      });
+    }
+    
+    setMessages(updatedMessages);
+    setIsLoading(false);
+  } catch (error) {
+    console.error("Error processing question:", error);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        text: "آسف، حدث خطأ في معالجة السؤال.",
+        sender: "bot",
+        icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
+      },
+    ]);
+    setIsLoading(false);
+  }
+};
+
+// Function to go back in tree navigation
+const handleTreeGoBack = (messageId) => {
+  if (treePath.length === 0) return;
+  
+  const newPath = [...treePath];
+  newPath.pop(); // Remove last item
+  setTreePath(newPath);
+  
+  // Hide the current options
+  const updatedMessages = messages.map(msg => {
+    if (msg.id === messageId && msg.type === 'treeQuestions') {
+      return { ...msg, hidden: true };
+    }
+    return msg;
+  });
+  
+  // Add back navigation message
+  updatedMessages.push({
+    text: "← العودة للخلف",
+    sender: "user",
+    id: Date.now(),
+  });
+  
+  if (newPath.length === 0) {
+    // Back to root level
+    const questionsMessage = {
+      text: "",
+      sender: "bot",
+      type: "treeQuestions",
+      questions: treeQuestions,
+      showBackButton: false,
+      id: Date.now() + 1,
+    };
+    updatedMessages.push(questionsMessage);
+  } else {
+    // Back to parent level
+    const parentQuestion = newPath[newPath.length - 1];
+    const questionsMessage = {
+      text: "",
+      sender: "bot",
+      type: "treeQuestions",
+      questions: parentQuestion.children,
+      showBackButton: newPath.length > 0,
+      id: Date.now() + 1,
+    };
+    updatedMessages.push(questionsMessage);
+  }
+  
+  setMessages(updatedMessages);
+};
+
   const sendMessage = async (e) => {
   e.preventDefault();
-  if (!input.trim()) return;
+  if (!input.trim() || useTreeApi) return; // Don't send messages in tree mode
 
   const userMessage = { text: input, sender: "user", id: Date.now() };
   const newMessages = [...messages, userMessage];
@@ -372,12 +514,53 @@ const ChatPage = () => {
 
   const handleGeneralClick = () => {
   setUseUnaApi(false);
+  setUseTreeApi(false);
   setPlaceholder("ماذا تريد أن تعرف...");
 };
 
   const handleUnaClick = () => {
   setUseUnaApi(true);
+  setUseTreeApi(false);
   setPlaceholder("اسأل عن خبر من منصة يونا...");
+};
+
+  const handleTreeClick = async () => {
+  setUseUnaApi(false);
+  setUseTreeApi(true);
+  setPlaceholder("الرجاء اختيار سؤال من الخيارات أدناه (لا يمكن الكتابة في هذا الوضع)");
+  setIsLoading(true);
+  setTreePath([]); // Reset navigation path
+  
+  // Fetch questions
+  const questions = await fetchTreeQuestions();
+  console.log("Questions fetched:", questions);
+  console.log("Is array?", Array.isArray(questions));
+  setTreeQuestions(questions);
+  
+  // Add welcome message
+  const welcomeMessage = {
+    text: "مرحباً بك في شجرة المعرفة! 🌳<br><br>يمكنك اختيار أحد الأسئلة التالية للحصول على إجابة شاملة:",
+    sender: "bot",
+    icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
+    isHtml: true,
+    id: Date.now(),
+  };
+  
+  // Add questions as options
+  const questionsMessage = {
+    text: "",
+    sender: "bot",
+    type: "treeQuestions",
+    questions: Array.isArray(questions) ? questions : [],
+    showBackButton: false,
+    id: Date.now() + 1,
+  };
+  
+  console.log("Questions message:", questionsMessage);
+  
+  setMessages(prevMessages => [...prevMessages, welcomeMessage, questionsMessage]);
+  setShowTreeOptions(true);
+  setIsLoading(false);
 };
 
 
@@ -399,9 +582,142 @@ const ChatPage = () => {
       {/* Chat messages container */}
       <div className="chat-container">
         <div className="chat-messages">
-          {messages.map((msg, index) => {
+          {messages.filter(msg => !msg.hidden).map((msg, index) => {
             const isLastMessage = index === messages.length - 1;
             const { main } = renderContent(msg.text);
+
+            // Handle tree questions display
+            if (msg.type === 'treeQuestions') {
+              return (
+                <div key={msg.id || `tree-questions-${index}`} className="tree-questions-wrapper" style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  margin: '15px 0',
+                  padding: '0 20px'
+                }}>
+                  <div className="tree-questions-container" style={{
+                    width: '100%',
+                    maxWidth: '500px',
+                    padding: '20px',
+                    borderRadius: '20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <div style={{
+                      textAlign: 'center',
+                      marginBottom: '15px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      اختر من الخيارات التالية:
+                    </div>
+                    {msg.showBackButton && (
+                      <button
+                        className="tree-back-button"
+                        onClick={() => handleTreeGoBack(msg.id)}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          margin: '8px 0 16px 0',
+                          padding: '12px 20px',
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '25px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 6px rgba(108, 117, 125, 0.3)',
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.backgroundColor = '#5a6268';
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(90, 98, 104, 0.4)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.backgroundColor = '#6c757d';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 6px rgba(108, 117, 125, 0.3)';
+                        }}
+                      >
+                        ← العودة للخلف
+                      </button>
+                    )}
+                    {msg.questions && Array.isArray(msg.questions) && msg.questions.map((question, qIndex) => (
+                      <button
+                        key={question.id || qIndex}
+                        className="tree-question-option"
+                        onClick={() => handleTreeQuestionSelect(question, msg.id)}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          margin: '10px 0',
+                          padding: '16px 24px',
+                          backgroundColor: 'white',
+                          color: '#0a4c5a',
+                          border: 'none',
+                          borderRadius: '30px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          transition: 'all 0.3s ease',
+                          position: 'relative',
+                          boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+                          letterSpacing: '0.5px'
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 6px 20px rgba(255, 255, 255, 0.3)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.backgroundColor = 'white';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 4px 15px rgba(255, 255, 255, 0.2)';
+                        }}
+                      >
+                        {question.title}
+                        {question.has_children && (
+                          <span style={{ 
+                            marginRight: '10px', 
+                            fontSize: '12px',
+                            opacity: 0.8,
+                            backgroundColor: 'rgba(10, 76, 90, 0.15)',
+                            color: '#0a4c5a',
+                            padding: '6px 12px',
+                            borderRadius: '15px',
+                            display: 'inline-block',
+                            fontWeight: '500'
+                          }}>
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                    {(!msg.questions || !Array.isArray(msg.questions) || msg.questions.length === 0) && (
+                      <p style={{ 
+                        color: 'rgba(255, 255, 255, 0.7)', 
+                        textAlign: 'center', 
+                        padding: '30px 20px',
+                        fontSize: '16px',
+                        fontWeight: '400',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '15px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}>
+                        لا توجد أسئلة متاحة حالياً 🤔
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            }
 
             // For ALL bot messages, use the new animated component
             if (msg.sender === 'bot') {
@@ -433,7 +749,7 @@ const ChatPage = () => {
         <button
           type="button"
           onClick={handleGeneralClick}
-            className={`api-toggle-button ${!useUnaApi ? "active" : ""}`}
+            className={`api-toggle-button ${!useUnaApi && !useTreeApi ? "active" : ""}`}
         >
           أسئلة عامة
         </button>
@@ -446,6 +762,14 @@ const ChatPage = () => {
           (UNA) أسئلة من منصة
         </button>
 
+        <button
+          type="button"
+          onClick={handleTreeClick}
+          className={`api-toggle-button ${useTreeApi ? "active" : ""}`}
+        >
+          شجرة المعرفة
+        </button>
+
         </div>
         <div className="form-question-container">
           <input
@@ -454,12 +778,20 @@ const ChatPage = () => {
             onChange={(e) => setInput(e.target.value)}
             placeholder={placeholder}
             className="chat-input"
+            disabled={useTreeApi}
+            style={{
+              opacity: useTreeApi ? 0.5 : 1,
+              cursor: useTreeApi ? 'not-allowed' : 'text'
+            }}
           />
           <button
             type="submit"
             className="send-button"
-            disabled={isLoading || isBotAnimating}
-            style={{ opacity: isLoading || isBotAnimating ? 0.6 : 1, cursor: isLoading || isBotAnimating ? "not-allowed" : "pointer" }}
+            disabled={isLoading || isBotAnimating || useTreeApi}
+            style={{ 
+              opacity: isLoading || isBotAnimating || useTreeApi ? 0.6 : 1, 
+              cursor: isLoading || isBotAnimating || useTreeApi ? "not-allowed" : "pointer" 
+            }}
           >
             <FiSend />
           </button>
