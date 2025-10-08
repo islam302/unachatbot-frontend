@@ -151,12 +151,12 @@ body {
 }
 
 .chat-container {
-  padding-bottom: 80px;
-  padding-top: 20px;
+  padding-bottom: 120px;
+  padding-top: 120px;
   background: transparent;
   margin: auto;
-  width: 60%;
-  height: 60%;
+  width: 85%;
+  height: 75%;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -176,6 +176,7 @@ body {
   position: relative;
   flex: 1;
   padding: 20px;
+  padding-bottom: 100px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -489,11 +490,11 @@ body {
 
 /* التصميم الأساسي للصفحة */
 .chat-container {
-  padding: 20px 0 80px;
+  padding: 120px 0 120px;
   background: transparent;
   margin: auto;
-  width: 60%;
-  height: 60%;
+  width: 85%;
+  height: 75%;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -536,7 +537,7 @@ body {
 /* الشاشات الكبيرة */
 @media (max-width: 1024px) {
   .chat-container {
-    width: 85%;
+    width: 90%;
   }
 
   .chat-input-form {
@@ -552,7 +553,7 @@ body {
 /* الشاشات المتوسطة */
 @media (max-width: 768px) {
   .chat-container {
-    width: 90%;
+    width: 95%;
   }
   .robot-container {
     display: none;
@@ -714,19 +715,35 @@ body.light-mode .chat-page {
   background-color: white !important;
 }
 
+/* Header elements in light mode */
+body.light-mode .chat-header {
+  color: black !important;
+}
+
+body.light-mode .current-date {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+}
+
 /* الرسائل */
 body.light-mode .chat-message.user .message-text,
 body.light-mode .chat-message.bot .message-text {
   background-color: #f5f5f5 !important;
   color: black !important;
+  border: 1px solid #e0e0e0 !important;
 }
 
 /* حقل السؤال */
 body.light-mode .chat-input {
   background-color: #f5f5f5 !important;
   color: black !important;
+  border: 1px solid #e0e0e0 !important;
   border-radius: 30px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+body.light-mode .chat-input::placeholder {
+  color: #666 !important;
 }
 
 /* زر الإرسال وغيره */
@@ -735,26 +752,108 @@ body.light-mode .send-button,
 body.light-mode .collapsible-button,
 body.light-mode .collapsible-content,
 body.light-mode .show-additional-btn {
-  background-color: white !important;
+  background-color: #f5f5f5 !important;
   color: black !important;
+  border: 1px solid #e0e0e0 !important;
 }
 
 /* زر API النشط */
 body.light-mode .api-toggle-button.active {
-  background-color: black !important;
+  background-color: #007bff !important;
   color: white !important;
+  border: 1px solid #007bff !important;
+}
+
+body.light-mode .api-toggle-button:hover {
+  background-color: #e0e0e0 !important;
 }
 
 /* زر الميكروفون */
 body.light-mode .microphone-button {
-  background-color: black !important;
+  background-color: white !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+body.light-mode .microphone-button:hover {
+  background-color: #f0f0f0 !important;
+}
+
+body.light-mode .microphone-button img,
+body.light-mode .microphone-button svg,
+body.light-mode .microphone-button i {
+  filter: invert(1) !important; /* يعكس لون الصورة - أسود يصبح أبيض */
+}
+
+/* Send button in light mode */
+body.light-mode .send-button {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+body.light-mode .send-button:hover {
+  background-color: #e0e0e0 !important;
+}
+
+/* Loading dots in light mode */
+body.light-mode .loading-dots {
+  color: black !important;
+}
+
+/* Overview description in light mode */
+body.light-mode .overview-description {
+  background: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+/* Additional content in light mode */
+body.light-mode .additional-content {
+  background: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+/* Tree questions styling in light mode */
+body.light-mode .tree-questions-container {
+  background-color: white !important;
+}
+
+body.light-mode .tree-question-option {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+body.light-mode .tree-question-option:hover {
+  background-color: #e0e0e0 !important;
+}
+
+body.light-mode .tree-back-button {
+  background-color: #dc3545 !important;
   color: white !important;
 }
 
-body.light-mode .microphone-button svg,
-body.light-mode .microphone-button i {
+body.light-mode .tree-main-menu-button {
+  background-color: #28a745 !important;
   color: white !important;
-  fill: white !important;
+}
+
+/* Similar question buttons in light mode */
+body.light-mode .similar-question-button {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+body.light-mode .similar-question-button:hover {
+  background-color: #e0e0e0 !important;
+}
+
+/* Message explanation in light mode */
+body.light-mode .message-explanation {
+  background-color: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
 }
 
 /* الفوتر */
@@ -794,8 +893,14 @@ body.light-mode .footer .social-icons a:hover {
 }
 
 body.light-mode .theme-toggle {
-  background: #fff;
-  color: #000;
+  background: #f5f5f5 !important;
+  color: black !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+}
+
+body.light-mode .theme-toggle:hover {
+  background: #e0e0e0 !important;
 }
 
 /* Custom typewriter effect styles */
