@@ -630,7 +630,7 @@ const handleTreeGoBack = (messageId) => {
   
   // Add welcome message
   const welcomeMessage = {
-    text: "مرحباً بك في شجرة المعرفة! 🌳<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
+    text: "مرحباً بك في الاسئلة الشائعة! 🌳<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
     sender: "bot",
     icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
     isHtml: true,
