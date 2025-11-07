@@ -230,6 +230,7 @@ const handleLanguageSelection = async (language, messageId) => {
     updatedMessages.push(languageConfirmMessage, questionsMessage);
     setMessages(updatedMessages);
     setIsLoading(false);
+    setIsBotAnimating(false);
   } catch (error) {
     console.error("Error processing language selection:", error);
     const errorMessage = {
@@ -241,16 +242,14 @@ const handleLanguageSelection = async (language, messageId) => {
     updatedMessages.push(errorMessage);
     setMessages(updatedMessages);
     setIsLoading(false);
+    setIsBotAnimating(false);
   }
 };
 
 // Function to handle tree question selection
 const handleTreeQuestionSelect = async (question, messageId) => {
   setIsLoading(true);
-  const shouldAnimateAnswer = Boolean(question.answer);
-  if (shouldAnimateAnswer) {
-    setIsBotAnimating(true);
-  }
+  setIsBotAnimating(true);
   
   // Hide the current options by removing the message that contains them
   const updatedMessages = messages.map(msg => {
@@ -329,9 +328,7 @@ const handleTreeQuestionSelect = async (question, messageId) => {
     
     setMessages(updatedMessages);
     setIsLoading(false);
-    if (!shouldAnimateAnswer) {
-      setIsBotAnimating(false);
-    }
+    setIsBotAnimating(false);
   } catch (error) {
     console.error("Error processing question:", error);
     setMessages((prevMessages) => [
@@ -619,9 +616,9 @@ const handleTreeGoBack = (messageId) => {
   const handleGeneralClick = () => {
   setUseUnaApi(false);
   setUseTreeApi(false);
-  setIsBotAnimating(false);
-  setIsLoading(false);
   setPlaceholder("ماذا تريد أن تعرف...");
+  setIsLoading(false);
+  setIsBotAnimating(false);
 };
 
   const handleUnaClick = () => {
@@ -635,6 +632,7 @@ const handleTreeGoBack = (messageId) => {
   setUseTreeApi(true);
   setPlaceholder("الرجاء اختيار سؤال من الخيارات أدناه (لا يمكن الكتابة في هذا الوضع)");
   setIsLoading(true);
+  setIsBotAnimating(false);
   setTreePath([]); // Reset navigation path
   
   // Add welcome message
@@ -658,6 +656,7 @@ const handleTreeGoBack = (messageId) => {
   setMessages(prevMessages => [...prevMessages, welcomeMessage, languageMessage]);
   setShowTreeOptions(true);
   setIsLoading(false);
+  setIsBotAnimating(false);
 };
 
 
