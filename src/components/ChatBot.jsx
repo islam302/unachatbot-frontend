@@ -160,7 +160,7 @@ const ChatPage = () => {
 // Function to fetch tree questions
 const fetchTreeQuestions = async () => {
   try {
-    const response = await axios.get("https://unachatbot-po0f.onrender.com/api/tree/");
+    const response = await axios.get("http://127.0.0.1:8000/api/tree/");
     console.log("Tree questions response:", response.data);
     return response.data.tree || [];
   } catch (error) {
@@ -172,7 +172,7 @@ const fetchTreeQuestions = async () => {
 // Function to fetch tree questions by language
 const fetchTreeQuestionsByLanguage = async (language) => {
   try {
-    const response = await axios.post("https://unachatbot-po0f.onrender.com/api/tree-by-language/", {
+    const response = await axios.post("http://127.0.0.1:8000/api/tree-by-language/", {
       language: language.toLowerCase()
     });
     console.log("Tree questions by language response:", response.data);
@@ -247,7 +247,10 @@ const handleLanguageSelection = async (language, messageId) => {
 // Function to handle tree question selection
 const handleTreeQuestionSelect = async (question, messageId) => {
   setIsLoading(true);
-  setIsBotAnimating(true);
+  const shouldAnimateAnswer = Boolean(question.answer);
+  if (shouldAnimateAnswer) {
+    setIsBotAnimating(true);
+  }
   
   // Hide the current options by removing the message that contains them
   const updatedMessages = messages.map(msg => {
@@ -326,6 +329,9 @@ const handleTreeQuestionSelect = async (question, messageId) => {
     
     setMessages(updatedMessages);
     setIsLoading(false);
+    if (!shouldAnimateAnswer) {
+      setIsBotAnimating(false);
+    }
   } catch (error) {
     console.error("Error processing question:", error);
     setMessages((prevMessages) => [
@@ -337,6 +343,7 @@ const handleTreeQuestionSelect = async (question, messageId) => {
       },
     ]);
     setIsLoading(false);
+    setIsBotAnimating(false);
   }
 };
 
@@ -612,6 +619,8 @@ const handleTreeGoBack = (messageId) => {
   const handleGeneralClick = () => {
   setUseUnaApi(false);
   setUseTreeApi(false);
+  setIsBotAnimating(false);
+  setIsLoading(false);
   setPlaceholder("ماذا تريد أن تعرف...");
 };
 
@@ -630,7 +639,7 @@ const handleTreeGoBack = (messageId) => {
   
   // Add welcome message
   const welcomeMessage = {
-    text: "مرحباً بك في الاسئلة الشائعة! 🌳<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
+    text: "مرحباً بك في شجرة المعرفة! 🌳<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
     sender: "bot",
     icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
     isHtml: true,
