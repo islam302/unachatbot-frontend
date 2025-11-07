@@ -160,7 +160,7 @@ const ChatPage = () => {
 // Function to fetch tree questions
 const fetchTreeQuestions = async () => {
   try {
-    const response = await axios.get("http://127.0.0.1:8000/api/tree/");
+    const response = await axios.get("https://unachatbot-po0f.onrender.com/api/tree/");
     console.log("Tree questions response:", response.data);
     return response.data.tree || [];
   } catch (error) {
@@ -172,7 +172,7 @@ const fetchTreeQuestions = async () => {
 // Function to fetch tree questions by language
 const fetchTreeQuestionsByLanguage = async (language) => {
   try {
-    const response = await axios.post("http://127.0.0.1:8000/api/tree-by-language/", {
+    const response = await axios.post("https://unachatbot-po0f.onrender.com/api/tree-by-language/", {
       language: language.toLowerCase()
     });
     console.log("Tree questions by language response:", response.data);
