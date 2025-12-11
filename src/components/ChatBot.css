@@ -759,9 +759,9 @@ body.light-mode .show-additional-btn {
 
 /* زر API النشط */
 body.light-mode .api-toggle-button.active {
-  background-color: #007bff !important;
+  background-color: #28a745 !important;
   color: white !important;
-  border: 1px solid #007bff !important;
+  border: 1px solid #28a745 !important;
 }
 
 body.light-mode .api-toggle-button:hover {
@@ -925,6 +925,28 @@ body.light-mode .theme-toggle:hover {
 /* --- Improves spacing and readability for all bot messages --- */
 .chat-message.bot .message-text {
   line-height: 1.6; /* Increases line height for better readability of long text */
+}
+
+/* --- Force text color for all text inside bot messages (dark mode) --- */
+.chat-message.bot .message-text,
+.chat-message.bot .message-text *:not(a) {
+  color: #ffffff !important;
+}
+
+/* --- Keep links blue in dark mode --- */
+.chat-message.bot .message-text a {
+  color: #2e89a8 !important;
+}
+
+/* --- Force black color for all text inside bot messages (light mode) --- */
+body.light-mode .chat-message.bot .message-text,
+body.light-mode .chat-message.bot .message-text *:not(a) {
+  color: #000000 !important;
+}
+
+/* --- Keep links blue in light mode --- */
+body.light-mode .chat-message.bot .message-text a {
+  color: #2e89a8 !important;
 }
 
 /* --- Styles for paragraphs --- */

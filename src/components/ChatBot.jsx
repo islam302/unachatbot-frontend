@@ -196,38 +196,23 @@ const handleLanguageSelection = async (language, messageId) => {
     return msg;
   });
   
-  // Add user's language selection as a message
-  updatedMessages.push({
-    text: `اللغة المختارة: ${language}`,
-    sender: "user",
-    id: Date.now(),
-  });
-  
   try {
     // Fetch tree questions for the selected language
     const questions = await fetchTreeQuestionsByLanguage(language);
     console.log("Questions fetched for language:", language, questions);
     setTreeQuestions(questions);
-    
-    // Add language confirmation message
-    const languageConfirmMessage = {
-      text: `تم اختيار اللغة ${language} بنجاح! يمكنك الآن اختيار أحد الأسئلة التالية:`,
-      sender: "bot",
-      icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
-      id: Date.now() + 1,
-    };
-    
-    // Add questions as options
+
+    // Add questions as options directly without confirmation messages
     const questionsMessage = {
       text: "",
       sender: "bot",
       type: "treeQuestions",
       questions: Array.isArray(questions) ? questions : [],
       showBackButton: false,
-      id: Date.now() + 2,
+      id: Date.now(),
     };
-    
-    updatedMessages.push(languageConfirmMessage, questionsMessage);
+
+    updatedMessages.push(questionsMessage);
     setMessages(updatedMessages);
     setIsLoading(false);
     setIsBotAnimating(false);
@@ -526,6 +511,7 @@ const handleTreeGoBack = (messageId) => {
 
     setMessages(updatedMessages);
     setIsLoading(false);
+    setIsBotAnimating(false);
   } catch (error) {
     console.error("Error sending message:", error.response || error.message);
     setMessages((prevMessages) => [
@@ -536,6 +522,8 @@ const handleTreeGoBack = (messageId) => {
         icon: "https://i.postimg.cc/wB80F6Z9/chatbot.png",
       },
     ]);
+    setIsLoading(false);
+    setIsBotAnimating(false);
   }
 };
 
@@ -637,7 +625,7 @@ const handleTreeGoBack = (messageId) => {
   
   // Add welcome message
   const welcomeMessage = {
-    text: "مرحباً بك في شجرة المعرفة! 🌳<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
+    text: "مرحباً بك<br><br>يرجى اختيار اللغة التي تريد عرض الأسئلة بها:",
     sender: "bot",
     icon: "https://i.postimg.cc/YSzf3QQx/chatbot-1.png",
     isHtml: true,
@@ -767,7 +755,7 @@ const handleTreeGoBack = (messageId) => {
                 }}>
                   <div className="tree-questions-container" style={{
                     width: '100%',
-                    maxWidth: '300px',
+                    maxWidth: '420px',
                     padding: '10px',
                     borderRadius: '0px',
                     backgroundColor: 'transparent',
@@ -784,42 +772,6 @@ const handleTreeGoBack = (messageId) => {
                     }}>
                        اختر من الخيارات التالية:
                     </div>
-                    {msg.showBackButton && (
-                      <button
-                        className="tree-back-button"
-                        onClick={() => handleTreeGoBack(msg.id)}
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          margin: '4px 0 10px 0',
-                          padding: '10px 15px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '20px',
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          transition: 'all 0.3s ease',
-                          boxShadow: '0 2px 8px rgba(220, 53, 69, 0.2)',
-                          position: 'relative',
-                        }}
-                        onMouseOver={(e) => {
-                          e.target.style.backgroundColor = '#c82333';
-                          e.target.style.transform = 'translateY(-2px)';
-                          e.target.style.boxShadow = '0 6px 20px rgba(220, 53, 69, 0.4)';
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.backgroundColor = '#dc3545';
-                          e.target.style.transform = 'translateY(0)';
-                          e.target.style.boxShadow = '0 4px 15px rgba(220, 53, 69, 0.3)';
-                        }}
-                      >
-                        🔙 العودة للقائمة السابقة
-                      </button>
-                    )}
-                    
                     {/* Always show "Back to Main Menu" button if we're not at root level */}
                     {treePath.length > 0 && (
                       <button
@@ -937,9 +889,9 @@ const handleTreeGoBack = (messageId) => {
                       </button>
                     ))}
                     {(!msg.questions || !Array.isArray(msg.questions) || msg.questions.length === 0) && (
-                      <p style={{ 
-                        color: theme === 'light' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)', 
-                        textAlign: 'center', 
+                      <p style={{
+                        color: theme === 'light' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+                        textAlign: 'center',
                         padding: '30px 20px',
                         fontSize: '16px',
                         fontWeight: '400',
@@ -949,6 +901,41 @@ const handleTreeGoBack = (messageId) => {
                       }}>
                         لا توجد أسئلة متاحة حالياً 🤔
                       </p>
+                    )}
+                    {msg.showBackButton && (
+                      <button
+                        className="tree-back-button"
+                        onClick={() => handleTreeGoBack(msg.id)}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          margin: '10px 0 4px 0',
+                          padding: '10px 15px',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 8px rgba(220, 53, 69, 0.2)',
+                          position: 'relative',
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.backgroundColor = '#c82333';
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 6px 20px rgba(220, 53, 69, 0.4)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.backgroundColor = '#dc3545';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 4px 15px rgba(220, 53, 69, 0.3)';
+                        }}
+                      >
+                        🔙 للخلف
+                      </button>
                     )}
                   </div>
                 </div>
